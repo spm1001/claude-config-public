@@ -1,6 +1,6 @@
 #!/bin/bash
 # Web environment initialization for Claude Code
-# Usage: curl -fsSL https://raw.githubusercontent.com/spm1001/claude-config/main/scripts/web-init.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/spm1001/claude-config-public/main/scripts/web-init.sh | bash
 
 set -e
 
