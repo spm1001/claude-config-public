@@ -1,0 +1,17 @@
+# Session and history files
+history.jsonl
+debug/
+file-history/
+shell-snapshots/
+todos/
+
+# Local overrides
+settings.local.json
+
+# IDE artifacts
+.DS_Store
+.vscode/
+.idea/
+
+# Logs
+*.log
