@@ -16,38 +16,26 @@ echo "   Session: ${CLAUDE_CODE_SESSION_ID:-unknown}"
 echo "   Environment: ${CLAUDE_CODE_REMOTE_ENVIRONMENT_TYPE:-default}"
 echo ""
 
-# Install beads CLI
+# Install beads CLI via go install
 echo "📦 Installing beads (bd)..."
-BD_INSTALLED=false
-
 if command -v bd &> /dev/null; then
-    echo "✓ bd already available"
-    BD_INSTALLED=true
+    echo "✓ bd already available at $(which bd)"
 else
-    # Try npm install (may fail due to network restrictions)
-    if npm install -g @beads/bd 2>/dev/null; then
-        echo "✓ bd installed via npm"
-        BD_INSTALLED=true
+    # Use go install directly (npm fails on /releases/download/ in web environment)
+    if go install github.com/steveyegge/beads/cmd/bd@latest 2>&1 | tail -1 | grep -qE "go/bin/bd|installed"; then
+        # Create wrapper in /usr/local/bin for PATH persistence
+        # (Web environment: each bash call is isolated, .bashrc not sourced)
+        cat > /usr/local/bin/bd <<'EOF'
+#!/bin/bash
+exec /root/go/bin/bd "$@"
+EOF
+        chmod +x /usr/local/bin/bd
+        echo "✓ bd installed to /usr/local/bin ($(bd version))"
     else
-        echo "⚠ npm install failed, trying alternative..."
-        # Fallback: use install script (will try go install)
-        if curl -fsSL https://raw.githubusercontent.com/steveyegge/beads/main/scripts/install.sh | bash 2>&1 | grep -q "installed successfully"; then
-            echo "✓ bd installed via go"
-            BD_INSTALLED=true
-        else
-            echo "⚠ Could not install bd automatically"
-            echo "   Agent can still work with beads JSONL files directly"
-        fi
+        echo "⚠ Could not install bd automatically"
+        echo "   Agent can still work with beads JSONL files directly"
     fi
 fi
-
-# Set up environment - persist PATH for subsequent commands
-echo "🔧 Configuring environment..."
-{
-    echo 'export PATH="$PATH:$HOME/.local/bin"'
-    echo 'export PATH="$PATH:$HOME/go/bin"'  # For go-installed bd
-    echo 'export PATH="$PATH:/root/go/bin"'  # Alternative go path
-} >> "$CLAUDE_ENV_FILE"
 
 # Handle beads repository if it exists
 if [ -d "$CLAUDE_PROJECT_DIR/.beads" ]; then
@@ -57,7 +45,7 @@ if [ -d "$CLAUDE_PROJECT_DIR/.beads" ]; then
     # Check if database exists
     if [ -f "$CLAUDE_PROJECT_DIR/.beads/beads.db" ]; then
         # Database exists, just show ready work
-        if $BD_INSTALLED; then
+        if command -v bd &> /dev/null; then
             bd ready --limit 5 2>/dev/null || echo "   Run 'bd ready' to see available work"
         else
             echo "   (bd not available - agent can read JSONL directly)"
@@ -69,7 +57,7 @@ if [ -d "$CLAUDE_PROJECT_DIR/.beads" ]; then
         # Extract prefix from first issue ID in JSONL
         EXISTING_PREFIX=$(head -1 "$CLAUDE_PROJECT_DIR/.beads/issues.jsonl" | grep -o '"id":"[^-]*' | cut -d'"' -f4)
 
-        if [ -n "$EXISTING_PREFIX" ] && $BD_INSTALLED; then
+        if [ -n "$EXISTING_PREFIX" ] && command -v bd &> /dev/null; then
             echo "   Found prefix: $EXISTING_PREFIX"
             echo "   Initializing database with existing prefix..."
             cd "$CLAUDE_PROJECT_DIR"
@@ -87,9 +75,8 @@ fi
 
 echo ""
 echo "✅ Web environment ready!"
-if $BD_INSTALLED && command -v bd &> /dev/null; then
+if command -v bd &> /dev/null; then
     echo "   - beads: $(bd version) at $(which bd)"
 else
     echo "   - beads: Not installed (agent can read JSONL files)"
 fi
-echo "   - Type 'bd --help' for commands (if bd is installed)"
