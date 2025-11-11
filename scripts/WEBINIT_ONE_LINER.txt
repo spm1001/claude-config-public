@@ -1,11 +1,8 @@
-========== COPY EVERYTHING BETWEEN THE LINES (lines 5-9 inclusive) ==========
+========== COPY THE LINE BELOW (single line, no line breaks) ==========
 
-[ "$CLAUDE_CODE_REMOTE" = "true" ] && { echo "🌐 Initializing..."; command -v bd >/dev/null || { go install github.com/steveyegge/beads/cmd/bd@latest && cat > /usr/local/bin/bd <<'BDWRAP'
-#!/bin/bash
-exec /root/go/bin/bd "$@"
-BDWRAP
-chmod +x /usr/local/bin/bd && echo "✓ bd installed"; }; [ -d "$CLAUDE_PROJECT_DIR/.beads" ] && { [ -f "$CLAUDE_PROJECT_DIR/.beads/issues.jsonl" ] && [ ! -f "$CLAUDE_PROJECT_DIR/.beads/beads.db" ] && { PREFIX=$(head -1 "$CLAUDE_PROJECT_DIR/.beads/issues.jsonl" | grep -o '"id":"[^-]*' | cut -d'"' -f4); [ -n "$PREFIX" ] && { cd "$CLAUDE_PROJECT_DIR" && bd init "$PREFIX" --quiet 2>/dev/null; }; }; bd ready --limit 5 2>/dev/null || echo "📋 Beads repo detected"; }; echo "✅ Ready!"; }
+[ "$CLAUDE_CODE_REMOTE" = "true" ] && { echo "🌐 Initializing..."; command -v bd >/dev/null || { go install github.com/steveyegge/beads/cmd/bd@latest && printf '#!/bin/bash\nexec /root/go/bin/bd "$@"\n' > /usr/local/bin/bd && chmod +x /usr/local/bin/bd && echo "✓ bd installed"; }; [ -d "$CLAUDE_PROJECT_DIR/.beads" ] && { [ -f "$CLAUDE_PROJECT_DIR/.beads/issues.jsonl" ] && [ ! -f "$CLAUDE_PROJECT_DIR/.beads/beads.db" ] && { PREFIX=$(head -1 "$CLAUDE_PROJECT_DIR/.beads/issues.jsonl" | grep -o '"id":"[^-]*' | cut -d'"' -f4); [ -n "$PREFIX" ] && { cd "$CLAUDE_PROJECT_DIR" && bd init "$PREFIX" --quiet 2>/dev/null; }; }; bd ready --limit 5 2>/dev/null || echo "📋 Beads repo detected"; }; echo "✅ Ready!"; }
 
-================================================================================
+=======================================================================
 
-NOTE: The heredoc (lines 6-8) MUST have those line breaks. Copy exactly as shown above.
+NOTE: This is a TRUE single line - uses printf instead of heredoc to avoid newlines.
+The .env format parser in Claude Code web UI requires all content on one line.
