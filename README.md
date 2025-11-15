@@ -1,76 +1,191 @@
-# Claude Code Public Configuration
+# Claude Code Configuration Templates
 
-Public subset of Claude Code configuration optimized for web sessions.
+**Production-tested patterns for Claude Code setup** - permissions, auto-updates, skills, and workflow practices that reduce friction and increase reliability.
 
-## What's Here
+## Why This Exists
 
-**Scripts:**
-- `scripts/web-init.sh` - Initialization script for Claude Code web sessions
-  - Installs beads CLI
-  - Sets up environment
-  - Shows ready work if repo has `.beads/`
+Claude Code requires configuration to work smoothly. Without it, you'll face:
+- **Permission prompts** on every bash command (frustrating)
+- **Manual tool updates** that fall behind (error-prone)
+- **Repeated setup** on new machines (tedious)
+- **Lost context** across sessions (inefficient)
 
-**Skills:**
-- `skills/bd-issue-tracking/` - Issue tracking with bd (beads)
-  - MCP-first approach for complex workflows
-  - CLI guidance for bootstrap and web environments
-  - Decision framework for bd vs TodoWrite
+This repo provides battle-tested templates that solve these problems.
 
-## Using in Claude Code for Web
+---
 
-### Recommended: Environment Variable Pattern
+## Quick Start
 
-Create a named environment in the web UI:
+### Local Setup (New Machine)
 
-```
-Name: Development
-Network access: Trusted network access
-Environment variables:
-  WEBINIT=curl -fsSL https://raw.githubusercontent.com/spm1001/claude-config-public/main/scripts/web-init.sh | bash
+1. **Clone and customize:**
+```bash
+git clone https://github.com/spm1001/claude-config-public.git ~/.claude-templates
+cd ~/.claude-templates
 ```
 
-**Then your opening prompt becomes:**
+2. **Copy settings template:**
+```bash
+# Review and customize for your environment
+cp templates/settings.json ~/.claude/settings.json
+```
+
+3. **Setup auto-updates (optional):**
+```bash
+# Copy and customize update script
+cp scripts/update-all.sh ~/.claude/scripts/
+# See scripts/README.md for git hook setup
+```
+
+### Web Sessions
+
+For Claude Code web environments (ephemeral VMs):
+
 ```
 $WEBINIT
 
 Then [your actual task]
 ```
 
-### Alternative: Direct Curl
+**Environment variable setup:** See [scripts/WEB_INIT_USAGE.md](scripts/WEB_INIT_USAGE.md)
 
-```
-curl -fsSL https://raw.githubusercontent.com/spm1001/claude-config-public/main/scripts/web-init.sh | bash
+---
 
-Then [your actual task]
-```
+## What's Included
 
-### What the Script Does
+### Templates (`templates/`)
 
-- Installs beads CLI via npm (if needed)
+**`settings.json`** - Comprehensive permission template
+- 100+ common CLI commands pre-approved (git, npm, brew, curl, etc.)
+- Eliminates "approve this command?" prompts
+- Safe defaults - no destructive operations without review
+- Copy and customize for your machine
+
+**`settings.local.json.example`** - Machine-specific settings template
+- WebFetch domain allowlists
+- Read permissions for your directories
+- Additional directory access
+- NOT tracked in git (contains paths)
+
+### Scripts (`scripts/`)
+
+**`update-all.sh`** - Tiered auto-updater
+- **Quick tier** (every trigger, <10s): Submodules, plugins, cleanup
+- **Heavy tier** (once per day): Homebrew, npm, Claude CLI
+- Prevents redundant expensive operations
+- Runs via git hooks (post-merge, pre-push)
+
+**`setup-new-machine.sh`** - Initial setup automation
+- Registers MCP servers
+- Generates settings.local.json
+- Auto-detects environment (e.g., Google Drive path)
+
+**`web-init.sh`** - Web session initialization
+- Installs tools in ephemeral VM
 - Sets up environment variables
-- Shows ready work if repo has `.beads/` directory
-- Takes ~5-10 seconds per session
-- Displays Claude Code version and session info
+- Shows ready work from issue tracker
 
-## About
+### Skills (`skills/`)
 
-This is a curated public subset of a larger private Claude Code configuration. It focuses on tools and patterns useful for web sessions where you need:
-- Quick environment setup
-- Issue tracking with beads
-- Development workflow patterns
+**`bd-issue-tracking/`** - Issue tracking with beads
+- When to use bd vs TodoWrite
+- CLI bootstrap patterns
+- Session handoff workflows
+- Dependency management
+
+### Documentation
+
+**`PATTERNS.md`** - Development philosophy and practices
+- Side quests as first-class work
+- Security-first mindset
+- Code quality standards
+- Session management patterns
+
+---
+
+## Customization Guide
+
+These are **templates, not drop-in configs**. You'll need to customize:
+
+1. **Paths** - Replace example paths with your actual directories
+2. **MCP servers** - Add your server registrations
+3. **Domains** - Add WebFetch domains you trust
+4. **Tools** - Add commands specific to your stack
+
+### Example Customizations
+
+**Python developer:**
+```json
+{
+  "allow": [
+    "Bash(python:*)",
+    "Bash(pip:*)",
+    "Bash(poetry:*)",
+    "Bash(pytest:*)"
+  ]
+}
+```
+
+**Rust developer:**
+```json
+{
+  "allow": [
+    "Bash(cargo:*)",
+    "Bash(rustc:*)",
+    "Bash(rustup:*)"
+  ]
+}
+```
+
+**Team with shared repos:**
+```bash
+# In update-all.sh, add your repos
+if [ -d "$HOME/work/shared-tooling" ]; then
+    cd "$HOME/work/shared-tooling"
+    git pull origin main
+fi
+```
+
+---
 
 ## Philosophy
 
-- **Zero per-repo config** - Works with any repo immediately
-- **Eliminates wheelspin** - Agent starts with context and tools
-- **MCP-first** - Structured workflows where available
-- **CLI fallback** - Works in web environments
+**Trust the operator.** If you're running Claude Code, you've already authorized it. Constant permission prompts add friction without meaningful security benefit. The templates pre-approve safe operations while maintaining oversight for destructive ones.
+
+**Automate the boring stuff.** Tool updates, dependency syncing, config backups - these should happen automatically. The tiered update system ensures freshness without wasting time.
+
+**Portable patterns over rigid configs.** These templates work across machines and teams because they're parameterized. Personal paths stay in `.local` files that aren't tracked.
+
+For deeper philosophy (side quests, security practices, quality standards), see [PATTERNS.md](PATTERNS.md).
+
+---
+
+## Repository Structure
+
+```
+├── README.md                 # You are here
+├── PATTERNS.md              # Development philosophy
+├── templates/
+│   ├── settings.json        # Base permissions template
+│   └── settings.local.json.example  # Machine-specific template
+├── scripts/
+│   ├── README.md            # Script documentation
+│   ├── update-all.sh        # Tiered auto-updater
+│   ├── setup-new-machine.sh # Initial setup
+│   ├── web-init.sh          # Web session init
+│   └── ...                  # Supporting files
+└── skills/
+    └── bd-issue-tracking/   # Issue tracking skill
+```
+
+---
 
 ## Related
 
-- [beads](https://github.com/steveyegge/beads) - Issue tracker optimized for AI collaboration
-- [Claude Code](https://claude.com/claude-code) - AI-powered development environment
+- [Claude Code Documentation](https://docs.anthropic.com/claude-code)
+- [beads](https://github.com/steveyegge/beads) - Issue tracker for AI collaboration
+- [Model Context Protocol](https://modelcontextprotocol.io/) - MCP specification
 
 ## License
 
-MIT
+MIT - Use freely, customize for your needs.

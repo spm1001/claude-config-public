@@ -1,0 +1,20 @@
+{
+  "// NOTE": "This file contains machine-specific settings. Copy to ~/.claude/settings.local.json and customize paths.",
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "WebFetch(domain:code.claude.com)",
+      "Read(//private/tmp/**)",
+      "Read(//Users/YOUR_USERNAME/Repos/**)",
+      "Read(//Users/YOUR_USERNAME/.claude/**)",
+      "Read(//Applications/**)"
+    ],
+    "deny": [],
+    "ask": [],
+    "additionalDirectories": [
+      "/Users/YOUR_USERNAME/Repos",
+      "/Users/YOUR_USERNAME/.claude"
+    ]
+  }
+}
