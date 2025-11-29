@@ -1,7 +1,7 @@
 {
   "permissions": {
     "additionalDirectories": [
-      "~/Repos"
+      "~/Projects"
     ],
     "allow": [
       "Bash(rm:*)",
@@ -132,10 +132,52 @@
       "Bash(ifconfig:*)",
       "Bash(netstat:*)",
       "Bash(lsof:*)",
+      "Bash(bd:*)",
       "Write(*)",
       "Edit(*)",
       "Read(*)",
       "WebSearch"
     ]
-  }
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "WebFetch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '📖 REMINDER: WebFetch returns AI summaries, not raw content. If this is documentation you need to understand deeply, use curl to fetch the actual page.'"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] && { echo \"🌐 Web session detected\"; command -v bd >/dev/null && [ -d \"$CLAUDE_PROJECT_DIR/.beads\" ] && { bd ready --limit 5 2>/dev/null || echo \"📋 Beads repo detected\"; }; echo \"✅ Ready!\"; } || true"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '💡 TIP: Use session-closedown skill for commits, push, and learnings capture'"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "input=$(cat); printf \"\\033[36m%s\\033[0m \\033[35m[%s]\\033[0m in \\033[33m%s\\033[0m\" \"$(echo \"$input\" | jq -r '.model.display_name')\" \"$(echo \"$input\" | jq -r '.output_style.name')\" \"$(basename \"$(echo \"$input\" | jq -r '.workspace.current_dir')\")\""
+  },
+  "outputStyle": "Thoughtful Partner",
+  "alwaysThinkingEnabled": true
 }
