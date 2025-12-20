@@ -73,20 +73,74 @@ else
     log "⚠ Submodule update failed"
 fi
 
-# 2. Claude plugin marketplace
-# CUSTOMIZE: Add your plugin marketplaces here
-log "Updating Claude plugins..."
-if command -v claude &> /dev/null; then
-    # Example: beads marketplace
-    # if claude plugin marketplace update beads-marketplace >> "$LOG_FILE" 2>&1; then
-    #     log "✓ Beads marketplace updated"
-    # fi
-    log "✓ Plugin updates checked"
-else
-    log "⚠ Claude CLI not found"
+# 2. Check for new skills in submodules
+# This notifies you when new skills appear in anthropic or other submodules
+log "Checking for new skills in submodules..."
+NEW_SKILLS=""
+SKILLS_DIR="$HOME/.claude/skills"
+KNOWN_FILE="$SKILLS_DIR/.known-unlinked"
+NOTIFY_FILE="$HOME/.claude/.new-skills-notification"
+
+# Helper: check if skill is in known-unlinked list
+is_known_unlinked() {
+    local skill_id="$1"
+    if [ -f "$KNOWN_FILE" ]; then
+        grep -q "^$skill_id$" "$KNOWN_FILE" 2>/dev/null
+        return $?
+    fi
+    return 1
+}
+
+# Check anthropic submodule (official Anthropic skills)
+if [ -d "$SKILLS_DIR/anthropic/skills" ]; then
+    for skill in "$SKILLS_DIR/anthropic/skills"/*/; do
+        skill_name=$(basename "$skill")
+        skill_id="anthropic:$skill_name"
+        if [ ! -L "$SKILLS_DIR/$skill_name" ] && [ -f "$skill/SKILL.md" ]; then
+            if ! is_known_unlinked "$skill_id"; then
+                NEW_SKILLS="$NEW_SKILLS $skill_id"
+            fi
+        fi
+    done
 fi
 
-# 3. Backup Claude Desktop config (if changed)
+# CUSTOMIZE: Add other skill submodules here
+# Example: superpowers submodule
+# if [ -d "$HOME/.claude/submodules/superpowers/skills" ]; then
+#     for skill in "$HOME/.claude/submodules/superpowers/skills"/*/; do
+#         skill_name=$(basename "$skill")
+#         skill_id="superpowers:$skill_name"
+#         if [ ! -L "$SKILLS_DIR/$skill_name" ] && [ -f "$skill/SKILL.md" ]; then
+#             if ! is_known_unlinked "$skill_id"; then
+#                 NEW_SKILLS="$NEW_SKILLS $skill_id"
+#             fi
+#         fi
+#     done
+# fi
+
+if [ -n "$NEW_SKILLS" ]; then
+    log "⚠ NEW SKILLS AVAILABLE:$NEW_SKILLS"
+    log "  To enable: cd ~/.claude/skills && ln -s <source> <name>"
+    log "  To ignore: add skill_id to ~/.claude/skills/.known-unlinked"
+    # Write notification file for Claude to pick up at session start
+    echo "$NEW_SKILLS" > "$NOTIFY_FILE"
+else
+    log "✓ All submodule skills accounted for"
+    # Clear notification if no new skills
+    rm -f "$NOTIFY_FILE"
+fi
+
+# 3. Issue tracker hygiene (if using bd/beads)
+if command -v bd &> /dev/null; then
+    log "Running bd doctor..."
+    if bd doctor >> "$LOG_FILE" 2>&1; then
+        log "✓ bd doctor passed"
+    else
+        log "⚠ bd doctor found issues (run 'bd doctor --fix' manually)"
+    fi
+fi
+
+# 4. Backup Claude Desktop config (if changed)
 BACKUP_DIR="$HOME/.claude/backup/claude-desktop"
 CLAUDE_CONFIG="$HOME/Library/Application Support/Claude/claude_desktop_config.json"
 CLAUDE_PLIST="$HOME/Library/Preferences/com.anthropic.claudefordesktop.plist"
@@ -107,7 +161,7 @@ if [ -f "$CLAUDE_PLIST" ]; then
     fi
 fi
 
-# 4. Cleanup stale artifacts
+# 5. Cleanup stale artifacts
 if [ -d "$HOME/.claude/local" ]; then
     rm -rf "$HOME/.claude/local"
     log "✓ Cleaned up stale ~/.claude/local directory"
@@ -220,12 +274,13 @@ if command -v claude &> /dev/null; then
     log "Claude Code CLI: $CLI_VERSION"
 fi
 
+# bd version (if using beads issue tracker)
+if command -v bd &> /dev/null && command -v brew &> /dev/null && brew list bd &> /dev/null; then
+    BD_VERSION=$(brew info bd --json 2>/dev/null | jq -r '.[0].installed[0].version' 2>/dev/null || echo "unknown")
+    log "bd CLI: v$BD_VERSION"
+fi
+
 # CUSTOMIZE: Add version checks for your tools
-# Example:
-# if command -v bd &> /dev/null; then
-#     BD_VERSION=$(brew info bd --json 2>/dev/null | jq -r '.[0].installed[0].version' 2>/dev/null || echo "unknown")
-#     log "bd CLI: v$BD_VERSION"
-# fi
 
 log "Update cycle complete"
 

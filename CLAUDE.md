@@ -67,6 +67,88 @@ Side quests and exploratory tangents are valuable work, not distractions.
 - **WebFetch**: Quick check if a page exists, get a rough overview
 - **curl + read**: Actually understanding documentation, finding specific details, learning from wikis
 
+### Git Commits
+
+**Commits should be in logical units**, not one giant commit at the end.
+
+- Group related changes together (e.g., "add feature X" not "add feature X + fix typo in unrelated file + update deps")
+- Each commit should be coherent and reviewable on its own
+- Write descriptive commit messages that explain the "why" not just the "what"
+- When doing multi-step work, commit after each logical milestone
+
+**Don't batch everything into one commit** just because it's convenient. The git history is documentation.
+
+### Testing Documentation for LLM Robustness
+
+When documenting intentional decisions (ADRs, design docs), test effectiveness by spawning subagents with adversarial prompts:
+
+- Use "fix mode" prompts: "clean this up", "dedupe that", "fix this warning"
+- Check if agents find and respect the documentation
+- If they don't, add inline references at the code site
+- Iterate: test → find gaps → harden → test again
+
+### Background Agents: Stay Talkative
+
+**CRITICAL: When spawning multiple agents, use `run_in_background: true` to stay responsive.**
+
+Silent pauses while agents run are confusing and frustrating. The correct pattern is:
+
+```python
+# ✅ CORRECT: Background agents
+Task(
+    subagent_type="general-purpose",
+    prompt="...",
+    description="...",
+    run_in_background=True  # Stay responsive!
+)
+
+# ❌ WRONG: Synchronous agents
+Task(
+    subagent_type="general-purpose",
+    prompt="...",
+    description="..."
+)  # Goes silent until complete
+```
+
+**The pattern:**
+1. Spawn agents with `run_in_background=True`
+2. Immediately respond: "Launched N agents (IDs: ...), running in background"
+3. Stay responsive and conversational while they work
+4. Use `TaskOutput` to check progress or wait for completion
+5. Report results as they come in
+
+**When to use background agents:**
+- Multiple test scenarios running in parallel
+- Long-running research tasks
+- Any parallel work where blocking isn't necessary
+- When user explicitly expects continued interaction
+
+**When synchronous is okay:**
+- Single, quick agent that completes in seconds
+- User explicitly wants to wait for result
+- Next step absolutely requires agent output
+
+**Key insight:** Background agents aren't just about performance - they're about maintaining conversational flow and user trust.
+
+### Accessibility for the Agent Era
+
+**Core framework for content system design.** When building any system that stores or serves content, design for the whole principal matrix, not just one cell:
+
+|  | **Self** | **Other** |
+|---|---|---|
+| **Human** | Me reading/editing | Colleagues reading |
+| **Machine** | My Claude, my scripts | Their Gemini, shared artifacts |
+
+**Key insight:** Agents inherit identity context. When a colleague's Gemini queries content, it runs as them - seeing what they see, blocked from what they can't access. This is different from infrastructure (crawlers, indexes) which see everything.
+
+**Design implications:**
+1. **Separate store from view** - Content lives in canonical store, multiple views serve different principals
+2. **Auth-aware placement** - Content's location determines which agents can reach it (Workspace Gemini can see Drive, not SSO-protected wikis)
+3. **Don't bifurcate, multiply views** - One source, multiple access paths (Markdown in Git → static site for humans → connector for agents)
+4. **Design for all four cells** - The "other's machine" cell is the one we forget, and it's increasingly important
+
+**The elegance criterion:** Solutions that serve multiple principals without separate paths are better than per-principal infrastructure.
+
 ## Filesystem Zones
 
 Organize your development environment into distinct zones, each serving a different purpose:

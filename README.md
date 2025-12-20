@@ -1,180 +1,178 @@
 # Claude Code Configuration Templates
 
-**Production-tested patterns for Claude Code setup** - permissions, hooks, skills, output styles, and workflow practices that reduce friction and increase reliability.
-
-## Why This Exists
-
-Claude Code requires configuration to work smoothly. Without it, you'll face:
-- **Permission prompts** on every bash command (frustrating)
-- **No session continuity** across crashes (lost work)
-- **Manual tool updates** that fall behind (error-prone)
-- **Repeated setup** on new machines (tedious)
-
-This repo provides battle-tested templates that solve these problems.
-
----
+Production-tested patterns for Claude Code: permissions, hooks, skills, and workflows. Pick what you need.
 
 ## Quick Start
 
-### Local Setup (New Machine)
-
-1. **Clone and customize:**
+**Minimal (5 minutes):** Just the settings template
 ```bash
 git clone https://github.com/spm1001/claude-config-public.git ~/.claude-templates
-cd ~/.claude-templates
+cp ~/.claude-templates/templates/settings.json ~/.claude/settings.json
+# Edit settings.json to add your paths and tools
 ```
 
-2. **Copy settings template:**
+**Recommended:** Settings + CLAUDE.md + core skills
 ```bash
-# Review and customize for your environment
-cp templates/settings.json ~/.claude/settings.json
+# After minimal setup:
+cp ~/.claude-templates/CLAUDE.md ~/.claude/CLAUDE.md
+cp -r ~/.claude-templates/skills/crash-recovery ~/.claude/skills/
+cp -r ~/.claude-templates/skills/session-closedown ~/.claude/skills/
 ```
 
-3. **Copy output style (optional):**
+**Full setup:** Everything including automation
 ```bash
-mkdir -p ~/.claude/output-styles
-cp output-styles/thoughtful-partner.md ~/.claude/output-styles/
+# After recommended setup:
+cp -r ~/.claude-templates/skills/* ~/.claude/skills/
+cp -r ~/.claude-templates/output-styles ~/.claude/
+cp -r ~/.claude-templates/scripts ~/.claude/
+# Configure git hooks per scripts/README.md
 ```
-
-4. **Copy skills you want:**
-```bash
-cp -r skills/crash-recovery ~/.claude/skills/
-cp -r skills/session-closedown ~/.claude/skills/
-cp -r skills/skill-quality-gate ~/.claude/skills/
-cp -r skills/bd-issue-tracking ~/.claude/skills/
-```
-
-5. **Setup auto-updates (optional):**
-```bash
-cp scripts/update-all.sh ~/.claude/scripts/
-# See scripts/README.md for git hook setup
-```
-
-### Web Sessions
-
-For Claude Code web environments (ephemeral VMs):
-
-```
-$WEBINIT
-
-Then [your actual task]
-```
-
-**Environment variable setup:** See [scripts/WEB_INIT_USAGE.md](scripts/WEB_INIT_USAGE.md)
 
 ---
 
-## What's Included
+## Components
 
-### Core Configuration
+### Core Settings (`templates/settings.json`)
 
-**`CLAUDE.md`** - Example global instructions
-- Two Claude configurations (Code vs Desktop)
-- Development philosophy (side quests, foundations over speed)
-- Filesystem zones organization
-- MCP server configuration patterns
-- Issue tracking philosophy
-- Security practices
-- Python environment with uv
-- Crash recovery protocol
+Pre-approved permissions for 130+ common CLI commands. Stops permission prompts for standard dev operations while maintaining oversight for destructive commands.
 
-**`PATTERNS.md`** - Development philosophy and practices
-- Side quests as first-class work
-- Security-first mindset
-- Code quality standards
-- Session management patterns
+**Includes:**
+- File operations: `rm`, `mv`, `cp`, `mkdir`
+- Git: full workflow support
+- Package managers: `npm`, `pip`, `uv`, `brew`, `cargo`
+- Languages: `python`, `node`, `go`, `rustc`
+- Utilities: `curl`, `jq`, `grep`, `find`
+- Hooks: startup notification, end-of-session reminder, WebFetch warning
 
-### Templates (`templates/`)
+**Customize:** Add your stack-specific tools and paths.
 
-**`settings.json`** - Comprehensive permission and hooks template
-- 130+ common CLI commands pre-approved
-- Session hooks (start, end, WebFetch reminder)
-- Status line configuration
-- Output style setting
-- Thinking mode enabled
+### Global Instructions (`CLAUDE.md`)
 
-**`settings.local.json.example`** - Machine-specific settings template
-- WebFetch domain allowlists
-- Read permissions for your directories
-- Additional directory access
+Example global instructions covering:
+- **Development philosophy** - Side quests as first-class work, foundations over speed
+- **Filesystem organization** - Separating tools, config, and content
+- **MCP configuration** - Patterns for server management
+- **Session memory** - Using CLAUDE.md as crash-resistant context
+- **Background agents** - Staying responsive while agents run
+- **Agent-era thinking** - Designing for human/machine × self/other matrix
 
-### Output Styles (`output-styles/`)
+This is a template. Adapt to your environment and preferences.
 
-**`thoughtful-partner.md`** - Collaborative communication style
+### Skills (Standalone Value)
+
+Each skill works independently. Pick what fits your workflow.
+
+| Skill | Purpose | Dependencies |
+|-------|---------|--------------|
+| **crash-recovery** | Reconstruct session context after crashes | None |
+| **session-closedown** | End-of-session ritual: git tidy, push, learnings | Git |
+| **svg-dataviz** | Create SVG charts/diagrams with render-and-iterate workflow | `rsvg-convert` or `sips` |
+| **looking** | Screenshot capture for "have a look" requests | macOS only (pyobjc) |
+| **bd-issue-tracking** | Multi-session work with dependency graphs | [beads](https://github.com/steveyegge/beads) |
+| **skill-quality-gate** | Validation checklist before creating new skills | None |
+
+**To install a skill:**
+```bash
+cp -r ~/.claude-templates/skills/SKILL_NAME ~/.claude/skills/
+```
+
+### Output Style (`output-styles/thoughtful-partner.md`)
+
+Communication style configuration:
 - When to explain vs just do
-- Tone guidance (direct, no apologies)
+- Tone guidance (direct, no apologies, confident)
 - Proactiveness policies
 - Work quality standards
 
-### Skills (`skills/`)
-
-**`bd-issue-tracking/`** - Issue tracking with beads
-- When to use bd vs TodoWrite
-- CLI and MCP patterns
-- Session handoff workflows
-- Dependency management
-- Comprehensive reference docs
-
-**`crash-recovery/`** - Session recovery after crashes
-- Git state assessment
-- Issue tracker integration
-- Context reconstruction
-- Quality checklist
-
-**`session-closedown/`** - End-of-session ritual
-- Git tidy and push
-- Session reflection
-- CLAUDE.md updates
-- Issue tracker updates
-
-**`skill-quality-gate/`** - Skill creation validation
-- Naming conventions
-- Description requirements
-- Quality checklist
-- Anti-patterns to avoid
+**To use:**
+```bash
+mkdir -p ~/.claude/output-styles
+cp ~/.claude-templates/output-styles/thoughtful-partner.md ~/.claude/output-styles/
+# Then set in settings.json: "outputStyle": "thoughtful-partner"
+```
 
 ### Scripts (`scripts/`)
 
-**`update-all.sh`** - Tiered auto-updater
-- Quick tier (every trigger): Submodules, plugins, cleanup
-- Heavy tier (daily): Homebrew, npm, Claude CLI
+| Script | Purpose |
+|--------|---------|
+| `update-all.sh` | Tiered auto-updater: quick (<10s) + heavy (daily) |
+| `setup-new-machine.sh` | Initial Claude Code setup |
+| `web-init.sh` | Web session initialization |
 
-**`setup-new-machine.sh`** - Initial setup automation
-
-**`web-init.sh`** - Web session initialization
+See `scripts/README.md` for git hook integration.
 
 ---
 
-## Customization Guide
+## Adoption Guide
 
-These are **templates, not drop-in configs**. You'll need to customize:
+### Merging with Existing Config
 
-1. **Paths** - Replace example paths with your actual directories
-2. **MCP servers** - Add your server registrations
-3. **Domains** - Add WebFetch domains you trust
-4. **Tools** - Add commands specific to your stack
+If you already have `~/.claude/settings.json`:
 
-### Example Customizations
+1. **Compare permissions:**
+   ```bash
+   diff ~/.claude/settings.json ~/.claude-templates/templates/settings.json
+   ```
 
-**Python developer:**
+2. **Merge what you need** - The template's `allow` array can be merged with yours
+
+3. **Don't overwrite** - Keep your existing paths, MCP servers, and customizations
+
+### Adding Skills to Existing Setup
+
+Skills are additive. Just copy the folder:
+```bash
+cp -r ~/.claude-templates/skills/crash-recovery ~/.claude/skills/
+```
+
+### Updating from Upstream
+
+This repo is occasionally updated. To get new versions:
+```bash
+cd ~/.claude-templates
+git pull origin main
+# Then manually diff and merge what you want
+```
+
+---
+
+## Customization Examples
+
+### Python Developer
 ```json
 {
   "allow": [
     "Bash(python:*)",
     "Bash(pip:*)",
-    "Bash(poetry:*)",
-    "Bash(pytest:*)"
+    "Bash(uv:*)",
+    "Bash(pytest:*)",
+    "Bash(ruff:*)",
+    "Bash(mypy:*)"
   ]
 }
 ```
 
-**Rust developer:**
+### Rust Developer
 ```json
 {
   "allow": [
     "Bash(cargo:*)",
     "Bash(rustc:*)",
-    "Bash(rustup:*)"
+    "Bash(rustup:*)",
+    "Bash(clippy:*)"
+  ]
+}
+```
+
+### DevOps / Infrastructure
+```json
+{
+  "allow": [
+    "Bash(docker:*)",
+    "Bash(kubectl:*)",
+    "Bash(terraform:*)",
+    "Bash(aws:*)",
+    "Bash(gcloud:*)"
   ]
 }
 ```
@@ -183,13 +181,11 @@ These are **templates, not drop-in configs**. You'll need to customize:
 
 ## Philosophy
 
-**Trust the operator.** If you're running Claude Code, you've already authorized it. Constant permission prompts add friction without meaningful security benefit. The templates pre-approve safe operations while maintaining oversight for destructive ones.
+**Trust the operator.** If you're running Claude Code, you've authorized it. Constant permission prompts add friction without security benefit.
 
-**Side quests are work.** Exploratory tangents and foundation-fixing are valuable, not distractions. The configuration reflects this philosophy.
+**Side quests are work.** Exploratory tangents and foundation-fixing are valuable. The configuration reflects this.
 
-**Automate the boring stuff.** Tool updates, config backups, session handoffs - these should happen automatically or with minimal friction.
-
-**Portable patterns over rigid configs.** Templates work across machines because they're parameterized. Personal paths stay in `.local` files that aren't tracked.
+**Pick what you need.** This is a buffet, not a set menu. Take the patterns that help, ignore the rest.
 
 For deeper philosophy, see [PATTERNS.md](PATTERNS.md) and [CLAUDE.md](CLAUDE.md).
 
@@ -198,25 +194,27 @@ For deeper philosophy, see [PATTERNS.md](PATTERNS.md) and [CLAUDE.md](CLAUDE.md)
 ## Repository Structure
 
 ```
-├── README.md                     # You are here
+├── README.md                     # This file
 ├── CLAUDE.md                     # Example global instructions
 ├── PATTERNS.md                   # Development philosophy
+├── SYNC.md                       # Upstream sync documentation
 ├── templates/
-│   ├── settings.json             # Permissions + hooks template
+│   ├── settings.json             # Permissions + hooks
 │   └── settings.local.json.example
 ├── output-styles/
-│   └── thoughtful-partner.md     # Communication style
+│   └── thoughtful-partner.md
 ├── scripts/
 │   ├── README.md
-│   ├── update-all.sh             # Tiered auto-updater
+│   ├── update-all.sh
 │   ├── setup-new-machine.sh
-│   ├── web-init.sh
-│   └── ...
+│   └── web-init.sh
 └── skills/
-    ├── bd-issue-tracking/        # Issue tracking skill
-    ├── crash-recovery/           # Session recovery skill
-    ├── session-closedown/        # End-of-session skill
-    └── skill-quality-gate/       # Skill creation validation
+    ├── crash-recovery/
+    ├── session-closedown/
+    ├── svg-dataviz/
+    ├── looking/
+    ├── bd-issue-tracking/
+    └── skill-quality-gate/
 ```
 
 ---
@@ -229,4 +227,4 @@ For deeper philosophy, see [PATTERNS.md](PATTERNS.md) and [CLAUDE.md](CLAUDE.md)
 
 ## License
 
-MIT - Use freely, customize for your needs.
+MIT - Use freely, adapt for your needs.
