@@ -34,17 +34,16 @@ cp -r ~/.claude-templates/scripts ~/.claude/
 
 ### Core Settings (`templates/settings.json`)
 
-Pre-approved permissions for 130+ common CLI commands. Stops permission prompts for standard dev operations while maintaining oversight for destructive commands.
+Blanket permissions for standard operations. The philosophy: if you're running Claude Code, you've authorized it.
 
 **Includes:**
-- File operations: `rm`, `mv`, `cp`, `mkdir`
-- Git: full workflow support
-- Package managers: `npm`, `pip`, `uv`, `brew`, `cargo`
-- Languages: `python`, `node`, `go`, `rustc`
-- Utilities: `curl`, `jq`, `grep`, `find`
+- `Bash` - All shell commands (blanket permission)
+- `Write(*)`, `Edit(*)`, `Read(*)` - All file operations
+- `WebSearch`, `WebFetch` - Web access
 - Hooks: startup notification, end-of-session reminder, WebFetch warning
+- Status line showing model, output style, and working directory
 
-**Customize:** Add your stack-specific tools and paths.
+**Customize:** Add your `additionalDirectories` and MCP tool permissions.
 
 ### Global Instructions (`CLAUDE.md`)
 
@@ -132,49 +131,6 @@ This repo is occasionally updated. To get new versions:
 cd ~/.claude-templates
 git pull origin main
 # Then manually diff and merge what you want
-```
-
----
-
-## Customization Examples
-
-### Python Developer
-```json
-{
-  "allow": [
-    "Bash(python:*)",
-    "Bash(pip:*)",
-    "Bash(uv:*)",
-    "Bash(pytest:*)",
-    "Bash(ruff:*)",
-    "Bash(mypy:*)"
-  ]
-}
-```
-
-### Rust Developer
-```json
-{
-  "allow": [
-    "Bash(cargo:*)",
-    "Bash(rustc:*)",
-    "Bash(rustup:*)",
-    "Bash(clippy:*)"
-  ]
-}
-```
-
-### DevOps / Infrastructure
-```json
-{
-  "allow": [
-    "Bash(docker:*)",
-    "Bash(kubectl:*)",
-    "Bash(terraform:*)",
-    "Bash(aws:*)",
-    "Bash(gcloud:*)"
-  ]
-}
 ```
 
 ---
