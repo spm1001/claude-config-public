@@ -1,18 +1,20 @@
 # Claude Code Configuration Templates
 
-Production-tested patterns for Claude Code: permissions, hooks, skills, and workflows. Pick what you need.
-
 ## Why This Exists
 
-Out of the box, Claude Code asks permission for *everything*. Every file read, every shell command, every web search — click, click, click. It forgets what you were working on between sessions. It doesn't know your preferences.
+So if you use Claude Code for a while, you start to express preferences to it, and those preferences get stored in your ~/.claude directory
 
-This repo fixes that. After setup:
-- **No more permission prompts** for routine operations
-- **Session continuity** — `/open` picks up where you left off, `/close` captures what you learned
-- **Persistent memory** — CLAUDE.md files teach Claude about your projects and preferences
-- **Specialized skills** — screenshot capture, GitHub cleanup, multi-session issue tracking
+As a result, I have set mine up as a repo. This means that any changes/ideas/developments are captured in the usual `git` mechanisms, which means that Claude Code can also read them and reason about changes. 
 
-It's the difference between a helpful stranger and a capable collaborator who knows your codebase.
+And once you've got comfortable with that, you quite quickly get to a point where you want to do some kind of session management - carrying over the work you were doing from one Claude session unto the next. 
+
+And then you start getting picky about *how* the handoffs are done, and start to make your own tools.
+
+These are mine which I'm sharing in case other people find them useful. Not necessarily to copy in the old sense, though of course you can, but maybe just point Claude at this repo and say 'what's here that we might find useful?'
+
+- **Session continuity** — `/open` picks up where you left off, `/close` captures what you learned. If you get lost `/ground` can help you, and claude, get back on track
+- **Persistent memory** — CLAUDE.md to teach Claude about your projects and preferences
+- **Specialized skills** — screenshot capture, GitHub cleanup, multi-session issue tracking with Steve Yegge's brilliant `beads`
 
 ## Quick Start
 
