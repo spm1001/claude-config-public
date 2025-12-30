@@ -2,6 +2,18 @@
 
 Production-tested patterns for Claude Code: permissions, hooks, skills, and workflows. Pick what you need.
 
+## Why This Exists
+
+Out of the box, Claude Code asks permission for *everything*. Every file read, every shell command, every web search — click, click, click. It forgets what you were working on between sessions. It doesn't know your preferences.
+
+This repo fixes that. After setup:
+- **No more permission prompts** for routine operations
+- **Session continuity** — `/open` picks up where you left off, `/close` captures what you learned
+- **Persistent memory** — CLAUDE.md files teach Claude about your projects and preferences
+- **Specialized skills** — screenshot capture, GitHub cleanup, multi-session issue tracking
+
+It's the difference between a helpful stranger and a capable collaborator who knows your codebase.
+
 ## Quick Start
 
 **Minimal (5 minutes):** Just the settings template
