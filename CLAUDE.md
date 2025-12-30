@@ -4,6 +4,43 @@ This file provides environment-specific context for Claude Code when working on 
 
 **Note:** Behavioral preferences (communication style, proactiveness, tone) can be configured separately in output styles. This file focuses on environment organization, tool configuration, and technical context.
 
+## Commands and Skills Architecture
+
+- **Commands** (`~/.claude/commands/*.md`) are slash-command entry points
+- **Skills** (`~/.claude/skills/*/SKILL.md`) contain the actual implementation
+- Commands should explicitly invoke skills: "**Invoke the `skill-name` skill**"
+- This makes the link discoverable when reviewing either file
+
+### Skill/Config Reload Pattern
+
+**Changes to SKILL.md, CLAUDE.md, or other config files don't take effect until the session reloads.**
+
+Skills are loaded into context at session start. If you edit a skill during a session:
+- The file on disk has changed
+- But the current session still has the OLD version loaded
+- Testing the new code requires a harness reload
+
+**When to suggest reload:**
+- After editing any SKILL.md file
+- After modifying ~/.claude/CLAUDE.md or project CLAUDE.md
+- Before testing changes to commands or hooks
+
+**How to reload:**
+- `/exit` then `claude` (fresh session)
+- `/exit` then `claude -c` (continue conversation with fresh harness)
+- `/exit` then `claude -r "session name"` (resume named session with fresh harness)
+
+**Action:** When you've edited a skill or config, proactively tell the user: "This needs a harness reload to take effect."
+
+### Official Examples Reference
+
+When building hooks, plugins, commands, or agents, check the official Claude Code repo for examples:
+- **Repository:** https://github.com/anthropics/claude-code
+- **Plugins:** `plugins/` — 15+ official plugins with full source (hooks, commands, agents, skills)
+- **Hook examples:** `examples/hooks/` — Reference implementations
+
+Use WebFetch or browse directly when you need implementation patterns.
+
 ## Two Claude Configurations
 
 macOS has two separate Claude config directories:
@@ -130,6 +167,44 @@ Task(
 
 **Key insight:** Background agents aren't just about performance - they're about maintaining conversational flow and user trust.
 
+### Open Files in Apps Proactively
+
+Use `open -a "App Name" /path/to/file` to open files in the appropriate application. This bypasses significant friction for the human:
+
+1. Open Finder (or Go > Go To Folder for hidden dirs like `~/.claude`)
+2. Navigate to folder
+3. Find file
+4. Open in preferred app (not always the default)
+
+**When to do this proactively:**
+- User needs to **review** something: Large markdown doc that flew past in CLI, generated config
+- User needs to **edit** something: `.env` file for API keys, YAML config, credentials
+- User needs to **reference** something: Documentation while working, checklist to follow along
+- You just created/updated a significant file and user will want to see it
+
+**Examples:**
+```bash
+open -a "Sublime Text" ~/.claude/skills/my-skill/SKILL.md  # Edit a skill
+open -a "Visual Studio Code" /path/to/.env                 # Add API keys
+open /path/to/file                                         # Default app if unsure
+```
+
+Don't wait to be asked. If the user would benefit from having a file open, just do it.
+
+### Approaching Closure
+
+**Concrete triggers — when you notice ANY of these, prompt the reflection:**
+- User says "let's wrap up", "almost done", "one more thing"
+- You've completed the main task and are about to summarize
+- TodoWrite is nearly empty (1-2 items left)
+- User mentions time/context ("running low", "before we close")
+
+**The prompt:** "Before we close — what haven't we done? What might we have missed?"
+
+**Why this matters:** By the time /close runs, context is exhausted. This question works better with juice left to act on the answers.
+
+**Don't be vague.** "Any final thoughts?" is weak. "What did we miss?" is specific.
+
 ### Accessibility for the Agent Era
 
 **Core framework for content system design.** When building any system that stores or serves content, design for the whole principal matrix, not just one cell:
@@ -193,6 +268,27 @@ MCP servers are registered globally via `claude mcp add --scope user` and load f
 2. **Define per-project:** Don't use global registration, define each MCP in project's `.mcp.json`
 3. **Accept token cost:** Live with all MCPs loading
 
+### MCP Authentication Principle
+
+When an MCP needs authentication (e.g., shows "Needs authentication"):
+- **Prompt user to authenticate** - say "X MCP needs authentication. Please authenticate so I can continue."
+- **Don't workaround** - don't guess at data, ask user to check manually, or skip the integration
+- **Canonical data matters** - partial workarounds create drift between what's in the system and what Claude knows
+
+### Skill Permission Quirk
+
+The `Skill(*)` wildcard in `settings.json` permissions covers tool execution but **not** the content trust prompt ("Use slash command X?"). To auto-approve specific skills without prompting, add explicit entries:
+
+```json
+"allow": [
+  "Skill(*)",
+  "Skill(close)",
+  "Skill(session-closing)"
+]
+```
+
+The wildcard handles unknown skills; explicit entries bypass trust prompts for known ones.
+
 ### Issue Tracking with bd (beads)
 
 If using bd for issue tracking, it works via CLI commands through the Bash tool:
@@ -207,7 +303,7 @@ If using bd for issue tracking, it works via CLI commands through the Bash tool:
 - `bd update <id> --status in_progress` - Update status
 - `bd dep add <dependent> <prerequisite>` - Manage dependencies
 
-See `skills/bd-issue-tracking/` for complete usage patterns.
+See `skills/beads/` for complete usage patterns.
 
 ## Security: Accidental Commit Remediation
 
@@ -320,4 +416,36 @@ When Claude Code session crashes and history is lost:
 3. Ask user: "What were we working on when it crashed?"
 4. Summarize reconstruction for confirmation before continuing
 
-**Detailed protocol:** See `skills/crash-recovery/SKILL.md`
+**Session management:** See `skills/session-management/` for open/ground/close workflows that help prevent context loss.
+
+## Inter-Session Memory Architecture
+
+Claude's memory across sessions comes from multiple sources, each with a distinct purpose:
+
+| Layer | Purpose | When to use |
+|-------|---------|-------------|
+| **Git commits** | Code changes + narrative | Always - history is documentation |
+| **CLAUDE.md** | Persistent knowledge, decisions, gotchas | Things future Claude MUST know |
+| **Issue tracker** | Work state, dependencies, session context | Multi-session work with structure |
+| **Handoff files** | Session-to-session continuity | Claude-to-Claude message |
+
+### The Continuity Stack
+
+| Level | Layer | Scope | Persistence |
+|-------|-------|-------|-------------|
+| 1 | **Handoff** | Session→session, per-project | Overwritten each session close |
+| 2 | **Local CLAUDE.md** | This project | Curated, durable |
+| 3 | **Global CLAUDE.md** | All projects | Curated, durable |
+
+**Key principle:** Update CLAUDE.md during the session, not just at close. Sessions can crash, context can exhaust. If this session dies right now, would a future Claude know what we learned?
+
+---
+
+## Your Working Style (Template)
+
+_This section is a placeholder. Add notes about your personal working patterns, cognitive preferences, or communication style here._
+
+Example sections you might add:
+- **Decision-making approach** — How you prefer to make decisions (intuitive, analytical, or both)
+- **Communication preferences** — How you like to receive information
+- **Work patterns** — Iteration style, when you do your best thinking

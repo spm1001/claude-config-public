@@ -30,18 +30,87 @@ When working in web Claude without MCP setup, use CLI equivalents for all operat
 Initialize bd in current directory (creates `.beads/` directory and database).
 
 ```bash
-bd init                    # Auto-detect prefix from git remote
-bd init --prefix api       # Custom prefix (e.g., "api-1", "api-2")
+bd init                    # Auto-detect prefix (from existing issues or folder name)
+bd init --prefix api       # Override auto-detection (rare - only if needed)
+bd init --quiet            # Non-interactive mode (auto-installs hooks, no prompts)
 ```
 
 **When to use:**
 - First time setting up bd in a project
 - Creating a new project-local issue database
+- Re-initializing after corruption
+
+**Auto-detection priority:**
+1. Reads prefix from first issue in existing JSONL
+2. Falls back to directory folder name
+3. Only use `--prefix` to override
 
 **What it creates:**
 - `.beads/` directory
 - `.beads/<prefix>.db` - SQLite database
 - `.beads/<prefix>.jsonl` - JSONL backup file
+- Git hooks (post-merge, pre-push) if user confirms
+
+**For non-interactive setup (agents):** Use `bd init --quiet`
+
+---
+
+### bd info --whats-new
+
+Show recent version changes relevant to AI agents (last 3 versions).
+
+```bash
+bd info --whats-new          # Human-readable output
+bd info --whats-new --json   # Machine-readable output
+```
+
+**When to use:**
+- At session start after bd version upgrade
+- When you see unfamiliar command output or behavior
+- To quickly understand recent changes without re-reading full documentation
+
+**What it shows:**
+- New commands and flags that improve agent workflows
+- Breaking changes requiring workflow updates
+- Performance improvements and bug fixes
+- Integration features (MCP, git hooks, Agent Mail)
+
+**Example output:**
+```
+v0.23.0 (2025-11-08):
+  - Auto-invoke 3-way merge for JSONL conflicts
+  - Add 'new' as alias for 'create' command
+  - Add bd cleanup command for bulk deletion
+
+v0.22.0 (2025-11-05):
+  - Add bd merge command for git 3-way JSONL merging
+  - Merge driver auto-config in bd init
+
+v0.21.9 (2025-11-05):
+  - Add pattern matching and date ranges to bd list
+```
+
+---
+
+### bd hooks install
+
+Install or update git hooks for automatic bd sync.
+
+```bash
+bd hooks install             # Install hooks in current repo
+```
+
+**When to use:**
+- After `bd init` if you skipped hook installation
+- After upgrading bd (hooks may have updates)
+- Repairing hooks after git corruption
+
+**What it installs:**
+- **post-merge hook:** Auto-sync after `git pull`
+- **pre-push hook:** Export JSONL before `git push`
+- **merge driver:** Intelligent 3-way JSONL merging for conflicts
+
+**Note:** `bd init --quiet` auto-installs these hooks without prompting.
 
 ---
 
@@ -315,9 +384,86 @@ bd ready --json
 
 ---
 
+## Molecule Commands (v0.34.0+)
+
+bd v0.34.0 introduces molecules - reusable work templates with a chemistry metaphor.
+
+### Proto Management
+
+```bash
+bd mol catalog                              # List available protos (templates)
+bd mol catalog --json                       # Machine-readable
+bd mol show <proto-id>                      # Show proto structure and variables
+```
+
+### Spawning Molecules
+
+```bash
+bd mol spawn <proto>                        # Create wisp (ephemeral, default)
+bd mol spawn <proto> --pour                 # Create mol (persistent)
+bd mol spawn <proto> --var key=value        # With variable substitution
+bd mol spawn <proto> --dry-run              # Preview without creating
+
+# Shortcuts
+bd pour <proto>                             # Same as spawn --pour
+bd wisp create <proto>                      # Explicit wisp creation
+```
+
+### Durable Execution
+
+```bash
+bd mol run <proto> --var version=1.0        # spawn + assign + pin
+```
+
+`mol run` spawns, assigns to caller, and pins for crash recovery. Use for work that should survive session restarts.
+
+### Bonding (Combining)
+
+```bash
+bd mol bond A B                             # Sequential: B after A
+bd mol bond A B --type parallel             # Parallel execution
+bd mol bond A B --type conditional          # B runs if A fails
+bd mol bond A B --as "Custom Name"          # Name compound proto
+bd mol bond A B --pour                      # Force persistent spawn
+bd mol bond A B --wisp                      # Force ephemeral spawn
+```
+
+### Distilling (Extract Template)
+
+```bash
+bd mol distill <epic-id> --as "Name"        # Extract proto from ad-hoc epic
+bd mol distill <epic> --var value=variable  # Replace concrete values with placeholders
+```
+
+### Wisp Lifecycle
+
+```bash
+bd wisp list                                # List active wisps
+bd wisp gc                                  # Garbage collect orphaned wisps
+bd mol squash <wisp>                        # Compress to digest, delete children
+bd mol squash <wisp> --summary "..."        # With agent-provided summary
+bd mol burn <wisp>                          # Delete without trace
+```
+
+### Cross-Project Dependencies
+
+```bash
+# Ship capability from project A
+bd ship <capability>                        # Publish (requires closed issue with export: label)
+bd ship <capability> --force                # Publish even if not closed
+
+# Depend on external capability in project B
+bd dep add <issue> external:<project>:<capability>
+```
+
+**For detailed molecule patterns:** See references/MOLECULES.md
+
+---
+
 ## For More Details
 
 - **MCP tools documentation:** See main SKILL.md
+- **Molecules and wisps:** See references/MOLECULES.md
 - **Conceptual guidance:** See references/BOUNDARIES.md, references/PATTERNS.md
 - **Workflows:** See references/WORKFLOWS.md
 - **Dependency semantics:** See references/DEPENDENCIES.md

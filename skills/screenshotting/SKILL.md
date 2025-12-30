@@ -1,13 +1,14 @@
 ---
-name: looking
+name: screenshotting
 description: >
-  Take screenshots to see what's on screen. Use when user says 'have a look',
-  'can you see', 'what does it look like', 'check this', or 'it looks like'.
-  Also use proactively to verify state after uncertain CLI operations (backgrounded
-  processes, tool prompts, visual changes). Captures windows or full screen to files.
+  Take screenshots to see what's on screen. Triggers on 'screenshot', 'grab a screenshot',
+  'have a look', 'can you see', 'what does it look like', 'check the screen', 'did that work',
+  'verify it worked', 'what happened'. AFTER uncertain CLI operations (backgrounded processes,
+  nohup, visual changes), consider capturing to verify state. Captures windows or full screen
+  to files. (user)
 ---
 
-# Looking
+# Screenshotting
 
 Take screenshots to see what's on screen. Captures persist as files (unlike browsermcp snapshots which only exist in context).
 
@@ -15,20 +16,28 @@ Take screenshots to see what's on screen. Captures persist as files (unlike brow
 
 ```bash
 # Capture specific app window
-~/.claude/.venv/bin/python ~/.claude/skills/looking/scripts/look.py --app Ghostty
+~/.claude/.venv/bin/python ~/.claude/skills/screenshotting/scripts/look.py --app Ghostty
 
 # Capture window by title match
-~/.claude/.venv/bin/python ~/.claude/skills/looking/scripts/look.py --app Chrome --title "LinkedIn"
+~/.claude/.venv/bin/python ~/.claude/skills/screenshotting/scripts/look.py --app Chrome --title "LinkedIn"
 
 # Capture full screen
-~/.claude/.venv/bin/python ~/.claude/skills/looking/scripts/look.py --screen
+~/.claude/.venv/bin/python ~/.claude/skills/screenshotting/scripts/look.py --screen
 
 # List available windows
-~/.claude/.venv/bin/python ~/.claude/skills/looking/scripts/look.py --list
+~/.claude/.venv/bin/python ~/.claude/skills/screenshotting/scripts/look.py --list
+
+# List windows grouped by category
+~/.claude/.venv/bin/python ~/.claude/skills/screenshotting/scripts/look.py --categories
+
+# List only browser windows
+~/.claude/.venv/bin/python ~/.claude/skills/screenshotting/scripts/look.py --category browsers
 
 # Native resolution (skip resize)
-~/.claude/.venv/bin/python ~/.claude/skills/looking/scripts/look.py --app Safari --native
+~/.claude/.venv/bin/python ~/.claude/skills/screenshotting/scripts/look.py --app Safari --native
 ```
+
+**Categories:** browsers, terminals, editors, communication, documents, media, other
 
 ## When to Use
 
@@ -68,15 +77,17 @@ Default: 1568px max dimension (~1,600 tokens, optimal for API)
 
 ## Output
 
-If no output path given, generates timestamped filename in current directory:
+**Ephemeral (no path):** Screenshots go to `/tmp/claude-screenshots/` — auto-cleaned by OS, won't clutter project directories:
 ```
-2025-12-15-143022-chrome.png
+/tmp/claude-screenshots/2025-12-15-143022-chrome.png
 ```
 
-With explicit path:
+**Persistent (explicit path):** For documentation workflows, specify where screenshots should live:
 ```bash
-look.py --app Chrome /path/to/output.png
+look.py --app Chrome ./docs/step3.png
 ```
+
+**Design rationale:** Quick looks are ephemeral by default. Documentation requires intentional placement. If a subagent is documenting, it should think about where artifacts belong.
 
 ## How It Works
 

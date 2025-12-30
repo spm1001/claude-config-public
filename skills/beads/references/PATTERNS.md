@@ -274,7 +274,7 @@ Before closing, verify:
 - [ ] **Tests passing**: If applicable
 - [ ] **Documentation updated**: If needed
 - [ ] **Follow-up work filed**: New issues created for discovered work
-- [ ] **Key decisions documented**: In notes or resolution field
+- [ ] **Key decisions documented**: In notes field
 
 ### Closure Pattern
 
@@ -295,18 +295,18 @@ FOLLOW-UP: Filed perf-99 for token cleanup job"
 bd close task-123 --reason "Implemented OAuth refresh token rotation with rate limiting. All security guidelines met. Tests passing."
 ```
 
-### Using Resolution Field
+### Documenting Resolution (Outcome vs Design)
 
-For issues where the outcome differed from initial design:
+For issues where the outcome differed from initial design, use `--notes` to document what actually happened:
 
 ```bash
-# Initial design was hypothesis
-bd update bug-456 --resolution "Not a bug: behavior is correct per OAuth spec. Documentation was unclear. Filed docs-789 to clarify auth flow in user guide."
+# Initial design was hypothesis - document actual outcome in notes
+bd update bug-456 --notes "RESOLUTION: Not a bug - behavior is correct per OAuth spec. Documentation was unclear. Filed docs-789 to clarify auth flow in user guide."
 
 bd close bug-456 --reason "Resolved: documentation issue, not bug"
 ```
 
-**Pattern**: Design field = initial approach. Resolution field = what actually happened.
+**Pattern**: Design field = initial approach. Notes field = what actually happened (prefix with RESOLUTION: for clarity).
 
 ### Discovering Follow-up Work
 
