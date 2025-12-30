@@ -76,7 +76,9 @@ Most people will probably just point Claude at this repo and let it figure out w
 - `/ground` — Check drift, reset if needed
 - `/close` — Reflect via AskUserQuestion, crystallize learnings, write handoff
 
-Scripts live in `skills/session-management/scripts/`. The skills invoke them via Bash.
+Handoffs live in `~/.claude/handoffs/{project-path}/{timestamp}.md`. Scripts live in `skills/session-management/scripts/`.
+
+**Minimum viable adoption:** Just copy CLAUDE.md to `~/.claude/CLAUDE.md` and customize. Everything else is optional.
 
 **Beads Skill** — For multi-session work with dependencies. Requires [bd CLI](https://github.com/steveyegge/beads). Teaches you to use bd without MCP (0 token overhead). Key patterns:
 - `bd ready` at session start

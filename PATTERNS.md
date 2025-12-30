@@ -1,6 +1,6 @@
 # Development Patterns and Philosophy
 
-Battle-tested patterns for working effectively with Claude Code. These are opinionated guidelines based on real-world experience.
+Patterns I've found useful when working with Claude Code. Take what helps, ignore the rest.
 
 ---
 
