@@ -2,239 +2,139 @@
 
 ## Why This Exists
 
-So if you use Claude Code for a while, you start to express preferences to it, and those preferences get stored in your ~/.claude directory
+So if you use Claude Code for a while, you start to express preferences to it, and those preferences get stored in your ~/.claude directory.
 
-As a result, I have set mine up as a repo. This means that any changes/ideas/developments are captured in the usual `git` mechanisms, which means that Claude Code can also read them and reason about changes. 
+As a result, I have set mine up as a repo. This means that any changes/ideas/developments are captured in the usual `git` mechanisms, which means that Claude Code can also read them and reason about changes.
 
-And once you've got comfortable with that, you quite quickly get to a point where you want to do some kind of session management - carrying over the work you were doing from one Claude session unto the next. 
+And once you've got comfortable with that, you quite quickly get to a point where you want to do some kind of session management — carrying over the work you were doing from one Claude session unto the next.
 
 And then you start getting picky about *how* the handoffs are done, and start to make your own tools.
 
-These are mine which I'm sharing in case other people find them useful. Not necessarily to copy in the old sense, though of course you can, but maybe just point Claude at this repo and say 'what's here that we might find useful?'
+These are mine which I'm sharing in case other people find them useful. Not necessarily to copy in the old sense, though of course you can, but maybe just point Claude at this repo and say "what's here that we might find useful?"
 
-- **Session continuity** — `/open` picks up where you left off, `/close` captures what you learned. If you get lost `/ground` can help you, and claude, get back on track
+- **Session continuity** — `/open` picks up where you left off, `/close` captures what you learned. If you get lost `/ground` can help you, and Claude, get back on track
 - **Persistent memory** — CLAUDE.md to teach Claude about your projects and preferences
-- **Specialized skills** — screenshot capture, GitHub cleanup, multi-session issue tracking with Steve Yegge's brilliant `beads`
-
-## Quick Start
-
-**Minimal (5 minutes):** Just the settings template
-```bash
-git clone https://github.com/spm1001/claude-config-public.git ~/.claude-templates
-cp ~/.claude-templates/templates/settings.json ~/.claude/settings.json
-# Edit settings.json to add your paths and tools
-```
-
-**Recommended:** Settings + CLAUDE.md + session skills
-```bash
-# After minimal setup:
-cp ~/.claude-templates/CLAUDE.md ~/.claude/CLAUDE.md
-cp -r ~/.claude-templates/skills/session-management ~/.claude/skills/
-```
-
-**Full setup:** Everything including all skills and automation
-```bash
-# After recommended setup:
-cp -r ~/.claude-templates/skills/* ~/.claude/skills/
-cp -r ~/.claude-templates/output-styles ~/.claude/
-cp -r ~/.claude-templates/scripts ~/.claude/
-# Configure git hooks per scripts/README.md
-```
+- **Specialized skills** — screenshot capture, GitHub cleanup, multi-session issue tracking with Steve Yegge's [beads](https://github.com/steveyegge/beads)
 
 ---
 
-## Components
+## For Humans
 
-### Core Settings (`templates/settings.json`)
+The repo structure is fairly self-explanatory. If you want to copy things manually, the key files are:
 
-Blanket permissions for standard operations. The philosophy: if you're running Claude Code, you've authorized it.
+| What | Where | Does |
+|------|-------|------|
+| Settings template | `templates/settings.json` | Hooks, status line config |
+| Global instructions | `CLAUDE.md` | Environment context, working patterns |
+| Session skills | `skills/session-management/` | The /open, /ground, /close trio |
+| Other skills | `skills/*/` | Screenshotting, GitHub cleanup, beads |
 
-**Includes:**
-- `Bash` - All shell commands (blanket permission)
-- `Write(*)`, `Edit(*)`, `Read(*)` - All file operations
-- `WebSearch`, `WebFetch` - Web access
-- Hooks: startup notification, end-of-session reminder, WebFetch warning
-- Status line showing model, output style, and working directory
+Most people will probably just point Claude at this repo and let it figure out what's relevant. Which brings us to...
 
-**Customize:** Add your `additionalDirectories` and MCP tool permissions.
+---
 
-### Global Instructions (`CLAUDE.md`)
+## For Claude
 
-Example global instructions covering:
-- **Development philosophy** - Side quests as first-class work, foundations over speed
-- **Skill and command architecture** - How to structure skills with reload patterns
-- **Filesystem organization** - Separating tools, config, and content
-- **MCP configuration** - Patterns for server management, authentication
-- **Session memory** - Using CLAUDE.md and handoffs as crash-resistant context
-- **Background agents** - Staying responsive while agents run
-- **Inter-session continuity** - The layered memory architecture
+**Context:** This repo contains Claude Code configuration patterns. The human has pointed you here to find useful things. Below is a dense guide to what's here and how it works.
 
-This is a template. Adapt to your environment and preferences.
+### Repository Map
 
-### Skills
-
-Each skill works independently. Pick what fits your workflow.
-
-| Skill | Purpose | Dependencies |
-|-------|---------|--------------|
-| **session-management** | Open/ground/close rituals for session continuity | Scripts included, bd optional |
-| **beads** | Multi-session work with dependency graphs | [bd CLI](https://github.com/steveyegge/beads) |
-| **screenshotting** | Screenshot capture for "have a look" requests | macOS only (pyobjc) |
-| **github-cleanup** | Audit and clean GitHub account | `gh` CLI |
-
-#### Session Management (3 skills)
-
-The `/open`, `/ground`, `/close` trio creates session-to-session continuity:
-
-- **session-opening** — Orient to previous work, pick direction
-- **session-grounding** — Mid-session checkpoint when things feel off
-- **session-closing** — Reflect, capture learnings, write handoff
-
-They share a common structure (Gather → Orient → Decide → Act) and work together through handoff files.
-
-#### Beads Issue Tracking
-
-For multi-session work with complex dependencies. Requires the `bd` CLI from [beads](https://github.com/steveyegge/beads).
-
-- Tracks work across sessions that outlast context
-- Dependency graphs for understanding blockers
-- Portfolio view across all your projects
-
-#### Screenshotting
-
-macOS screenshot capture that lets Claude see what's on screen.
-
-```bash
-# Requires
-pip install pyobjc-framework-Quartz
-# Also requires Screen Recording permission
+```
+├── CLAUDE.md                     # Global instructions template (IMPORTANT)
+├── templates/settings.json       # Hooks, status line, model settings
+├── output-styles/
+│   └── thoughtful-partner.md     # Communication style config
+├── commands/                     # Slash command entry points
+│   ├── open.md                   # → invokes session-opening skill
+│   ├── ground.md                 # → invokes session-grounding skill
+│   └── close.md                  # → invokes session-closing skill
+├── skills/
+│   ├── session-management/       # Skill set (not single skill)
+│   │   ├── session-opening/      # Orient to previous work
+│   │   ├── session-grounding/    # Mid-session checkpoint
+│   │   ├── session-closing/      # Capture learnings, write handoff
+│   │   └── scripts/              # Shared scripts for all three
+│   ├── beads/                    # Multi-session issue tracking
+│   ├── screenshotting/           # macOS screenshot capture
+│   └── github-cleanup/           # Audit GitHub account
+└── scripts/
+    ├── update-all.sh             # Tiered auto-updater
+    └── setup-new-machine.sh      # Initial setup
 ```
 
-#### GitHub Cleanup
+### Key Components
 
-Audit-first pattern for GitHub housekeeping:
-- Find stale forks with no custom changes
-- Detect orphaned secrets
-- Identify failing workflows
-- Always asks before destructive actions
+**CLAUDE.md** — The most valuable file. Contains:
+- Filesystem zones (where tools vs content live)
+- Session continuity patterns (update CLAUDE.md during session, not just at close)
+- Side quest philosophy (treat tangents as first-class work)
+- MCP configuration patterns
+- Inter-session memory architecture
 
-**To install a skill:**
+**Session Management** — Three skills that share structure (Gather → Orient → Decide → Act):
+- `/open` — Run script, synthesize handoff, pick direction, draw-down to TodoWrite
+- `/ground` — Check drift, reset if needed
+- `/close` — Reflect via AskUserQuestion, crystallize learnings, write handoff
+
+Scripts live in `skills/session-management/scripts/`. The skills invoke them via Bash.
+
+**Beads Skill** — For multi-session work with dependencies. Requires [bd CLI](https://github.com/steveyegge/beads). Teaches you to use bd without MCP (0 token overhead). Key patterns:
+- `bd ready` at session start
+- Draw-down: translate bead acceptance criteria → TodoWrite items
+- Close beads with resolution notes
+
+**Screenshotting** — macOS only. Requires `pyobjc-framework-Quartz` and Screen Recording permission. Captures what's on screen when human says "have a look at this".
+
+**GitHub Cleanup** — Audit-first pattern. Finds stale forks, orphaned secrets, failing workflows. Always asks before destructive actions. Requires `gh` CLI.
+
+### Gotchas
+
+1. **Skill/config reload** — Changes to SKILL.md or CLAUDE.md don't take effect until session reload. If you edit a skill, tell the human: "This needs a harness reload to take effect."
+
+2. **Session-management is a skill set** — The skills are in `session-management/session-*/`, not `session-management/` directly. Parser reads SKILL.md from skill root.
+
+3. **Scripts path** — Scripts for session skills live in `skills/session-management/scripts/`, not in the repo root `scripts/` folder.
+
+4. **Beads requires bd** — The bd CLI isn't widely distributed yet. If human doesn't have it, the beads skill won't work.
+
+5. **Screenshotting is macOS only** — pyobjc doesn't exist on Linux/Windows.
+
+### Installation Patterns
+
+If human asks you to set things up:
+
 ```bash
+# Clone as templates (don't overwrite existing config)
+git clone https://github.com/spm1001/claude-config-public.git ~/.claude-templates
+
+# Copy what's relevant (check existing files first)
+cp ~/.claude-templates/CLAUDE.md ~/.claude/CLAUDE.md
+cp -r ~/.claude-templates/skills/session-management ~/.claude/skills/
+
+# For individual skills
 cp -r ~/.claude-templates/skills/SKILL_NAME ~/.claude/skills/
 ```
 
-### Output Style (`output-styles/thoughtful-partner.md`)
+If they already have config, diff and merge rather than overwrite.
 
-Communication style configuration:
-- When to explain vs just do
-- Tone guidance (direct, no apologies, confident)
-- Proactiveness policies
-- Work quality standards
+### What to Recommend
 
-**To use:**
-```bash
-mkdir -p ~/.claude/output-styles
-cp ~/.claude-templates/output-styles/thoughtful-partner.md ~/.claude/output-styles/
-# Then set in settings.json: "outputStyle": "thoughtful-partner"
-```
+**Almost always useful:** CLAUDE.md patterns, session-management skills
 
-### Scripts (`scripts/`)
+**Situationally useful:**
+- beads — if they do multi-session work with complex dependencies
+- screenshotting — if they're on macOS and want you to see their screen
+- github-cleanup — if they want to audit their GitHub account
 
-| Script | Purpose |
-|--------|---------|
-| `update-all.sh` | Tiered auto-updater: quick (<10s) + heavy (daily) |
-| `setup-new-machine.sh` | Initial Claude Code setup |
-| `web-init.sh` | Web session initialization |
+**Probably skip:** The scripts folder (setup automation, git hooks) — these are specific to the original author's workflow.
 
-See `scripts/README.md` for git hook integration.
+### Related Files
+
+- [PATTERNS.md](PATTERNS.md) — Development philosophy in more depth
+- [SYNC.md](SYNC.md) — How this repo syncs from private config (not relevant for users)
 
 ---
-
-## Adoption Guide
-
-### Merging with Existing Config
-
-If you already have `~/.claude/settings.json`:
-
-1. **Compare permissions:**
-   ```bash
-   diff ~/.claude/settings.json ~/.claude-templates/templates/settings.json
-   ```
-
-2. **Merge what you need** - The template's `allow` array can be merged with yours
-
-3. **Don't overwrite** - Keep your existing paths, MCP servers, and customizations
-
-### Adding Skills to Existing Setup
-
-Skills are additive. Just copy the folder:
-```bash
-cp -r ~/.claude-templates/skills/session-management ~/.claude/skills/
-```
-
-### Updating from Upstream
-
-This repo is occasionally updated. To get new versions:
-```bash
-cd ~/.claude-templates
-git pull origin main
-# Then manually diff and merge what you want
-```
-
----
-
-## Philosophy
-
-**Trust the operator.** If you're running Claude Code, you've authorized it. Constant permission prompts add friction without security benefit.
-
-**Side quests are work.** Exploratory tangents and foundation-fixing are valuable. The configuration reflects this.
-
-**Pick what you need.** This is a buffet, not a set menu. Take the patterns that help, ignore the rest.
-
-For deeper philosophy, see [PATTERNS.md](PATTERNS.md) and [CLAUDE.md](CLAUDE.md).
-
----
-
-## Repository Structure
-
-```
-├── README.md                     # This file
-├── CLAUDE.md                     # Example global instructions
-├── PATTERNS.md                   # Development philosophy
-├── SYNC.md                       # Upstream sync documentation
-├── templates/
-│   ├── settings.json             # Permissions + hooks
-│   └── settings.local.json.example
-├── output-styles/
-│   └── thoughtful-partner.md
-├── commands/                     # Slash commands (/open, /ground, /close)
-│   ├── open.md
-│   ├── ground.md
-│   └── close.md
-├── scripts/
-│   ├── README.md
-│   ├── update-all.sh
-│   ├── setup-new-machine.sh
-│   └── web-init.sh
-└── skills/
-    ├── session-management/       # Open/ground/close trio
-    │   ├── session-opening/
-    │   ├── session-grounding/
-    │   ├── session-closing/
-    │   └── scripts/
-    ├── beads/                    # Issue tracking with dependencies
-    ├── screenshotting/           # macOS screenshot capture
-    └── github-cleanup/           # GitHub account maintenance
-```
-
----
-
-## Related
-
-- [Claude Code Documentation](https://docs.anthropic.com/claude-code)
-- [beads](https://github.com/steveyegge/beads) - Issue tracker for AI collaboration
-- [Model Context Protocol](https://modelcontextprotocol.io/) - MCP specification
 
 ## License
 
-MIT - Use freely, adapt for your needs.
+MIT — use freely, adapt for your needs.
