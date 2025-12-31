@@ -64,7 +64,7 @@ Most people will probably just point Claude at this repo and let it figure out w
 
 ### Key Components
 
-**CLAUDE.md** — The most valuable file. Contains:
+**CLAUDE.md** — The most valuable file. Teaches me about your file organization, how to handle side quests, when to update documentation, and how memory works across sessions. Contains:
 - Filesystem zones (where tools vs content live)
 - Session continuity patterns (update CLAUDE.md during session, not just at close)
 - Side quest philosophy (treat tangents as first-class work)
@@ -88,6 +88,13 @@ Handoffs live in `~/.claude/handoffs/{project-path}/{timestamp}.md`. Scripts liv
 **Screenshotting** — macOS only. Requires `pyobjc-framework-Quartz` and Screen Recording permission. Captures what's on screen when human says "have a look at this".
 
 **GitHub Cleanup** — Audit-first pattern. Finds stale forks, orphaned secrets, failing workflows. Always asks before destructive actions. Requires `gh` CLI.
+
+### Dependencies
+
+Skills have optional dependencies:
+- **beads**: `bd` CLI from [steveyegge/beads](https://github.com/steveyegge/beads)
+- **screenshotting**: `pyobjc-framework-Quartz` + macOS Screen Recording permission
+- **github-cleanup**: `gh` CLI
 
 ### Gotchas
 
