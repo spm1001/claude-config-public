@@ -1,4 +1,12 @@
-# Claude Code Configuration Templates
+> **⚠️ ARCHIVED — This repo has moved to [claude-suite](https://github.com/spm1001/claude-suite)**
+>
+> The session lifecycle skills, beads integration, and utility skills now live in claude-suite. This repo is preserved for historical reference but is no longer maintained.
+>
+> For Todoist GTD integration, see [todoist-gtd](https://github.com/spm1001/todoist-gtd).
+
+---
+
+# Claude Code Configuration Templates (archived)
 
 ## Why This Exists
 
